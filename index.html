@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Campaign Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .dropzone:hover, .dropzone.dragover {
+            border-color: #4f46e5;
+            background-color: #f8f9fa;
+        }
+        .preview-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #4f46e5;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        #flyerPreview {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: white;
+        }
+        .email-item {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background-color: #f3f4f6;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .email-item.success {
+            background-color: #d1fae5;
+        }
+        .email-item.error {
+            background-color: #fee2e2;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Email Campaign Manager</h1>
+            <p class="text-gray-600">Upload your Excel file with emails and promotional flyer to send bulk emails</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Email List Section -->
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">1. Upload Email List</h2>
+                    <div id="emailDropzone" class="dropzone">
+                        <div class="flex flex-col items-center justify-center py-6">
+                            <i class="fas fa-file-excel text-4xl text-green-600 mb-3"></i>
+                            <p class="text-gray-600 mb-2">Drag & drop your Excel file here</p>
+                            <p class="text-sm text-gray-500 mb-4">or</p>
+                            <button id="browseEmailBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                Browse Files
+                            </button>
+                            <input type="file" id="emailFileInput" accept=".xlsx,.xls,.csv" class="hidden">
+                        </div>
+                    </div>
+                    
+                    <div id="emailPreview" class="preview-container hidden">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-medium text-gray-700">Email Preview (First 10 rows)</h3>
+                            <button id="clearEmailBtn" class="text-red-500 text-sm hover:text-red-700">
+                                <i class="fas fa-trash mr-1"></i> Clear
+                            </button>
+                        </div>
+                        <div id="emailList" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Flyer Section -->
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">2. Create Promotional Flyer</h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Flyer Type</label>
+                        <div class="flex space-x-4">
+                            <button id="imageFlyerBtn" class="flex-1 py-2 px-4 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+                                <i class="fas fa-image mr-2"></i> Image Flyer
+                            </button>
+                            <button id="htmlFlyerBtn" class="flex-1 py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-code mr-2"></i> HTML Flyer
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Image Flyer Upload -->
+                    <div id="imageFlyerSection">
+                        <div id="flyerDropzone" class="dropzone">
+                            <div class="flex flex-col items-center justify-center py-6">
+                                <i class="fas fa-image text-4xl text-blue-500 mb-3"></i>
+                                <p class="text-gray-600 mb-2">Drag & drop your flyer image here</p>
+                                <p class="text-sm text-gray-500 mb-4">or</p>
+                                <button id="browseFlyerBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                    Browse Files
+                                </button>
+                                <input type="file" id="flyerFileInput" accept="image/*" class="hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HTML Flyer Editor -->
+                    <div id="htmlFlyerSection" class="hidden">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 mb-1">Subject</label>
+                            <input type="text" id="emailSubject" placeholder="Enter email subject" class="w-full px-3 py-2 border rounded-md">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 mb-1">HTML Content</label>
+                            <textarea id="htmlEditor" rows="8" class="w-full px-3 py-2 border rounded-md font-mono" placeholder="Enter your HTML content here..."></textarea>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="loadTemplateBtn" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition">
+                                <i class="fas fa-magic mr-2"></i> Load Template
+                            </button>
+                            <button id="previewHtmlBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                <i class="fas fa-eye mr-2"></i> Preview
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="flyerPreview" class="preview-container hidden mt-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-medium text-gray-700">Flyer Preview</h3>
+                            <button id="clearFlyerBtn" class="text-red-500 text-sm hover:text-red-700">
+                                <i class="fas fa-trash mr-1"></i> Clear
+                            </button>
+                        </div>
+                        <div id="flyerContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Configuration -->
+            <div class="mt-8 pt-6 border-t">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">3. Email Configuration</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 mb-1">From Name</label>
+                        <input type="text" id="fromName" placeholder="Your Company" class="w-full px-3 py-2 border rounded-md" value="Marketing Team">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-1">From Email</label>
+                        <input type="email" id="fromEmail" placeholder="noreply@yourcompany.com" class="w-full px-3 py-2 border rounded-md" value="noreply@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-1">Subject</label>
+                        <input type="text" id="emailSubjectInput" placeholder="Special Offer Inside!" class="w-full px-3 py-2 border rounded-md" value="Exciting News! Check Out Our Latest Offers">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-1">Reply To</label>
+                        <input type="email" id="replyTo" placeholder="contact@yourcompany.com" class="w-full px-3 py-2 border rounded-md" value="contact@example.com">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="unsubscribeCheck" class="rounded text-indigo-600" checked>
+                        <span class="ml-2 text-gray-700">Include unsubscribe link</span>
+                    </label>
+                </div>
+
+                <!-- Test Email Section -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-md border border-blue-200">
+                    <h3 class="font-medium text-blue-800 mb-3"><i class="fas fa-vial mr-2"></i>Test Email Configuration</h3>
+                    <p class="text-blue-700 text-sm mb-3">Send a test email to verify your configuration is working</p>
+                    <div class="flex gap-3">
+                        <input type="email" id="testEmail" placeholder="test@example.com" class="flex-1 px-3 py-2 border rounded-md text-sm">
+                        <button id="sendTestBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition text-sm">
+                            <i class="fas fa-paper-plane mr-1"></i> Send Test
+                        </button>
+                    </div>
+                    <div id="testResult" class="mt-2 text-sm hidden"></div>
+                </div>
+            </div>
+
+            <!-- Send Button -->
+            <div class="mt-8 flex justify-center">
+                <button id="sendEmailsBtn" class="bg-green-600 text-white px-8 py-3 rounded-md hover:bg-green-700 transition flex items-center disabled:opacity-50" disabled>
+                    <i class="fas fa-paper-plane mr-2"></i> Send Emails
+                </button>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="mt-8 hidden">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-700">Sending progress</span>
+                    <span id="progressText" class="text-gray-700">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                
+                <div id="emailStatusList" class="preview-container mt-4 max-h-64 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">How to Use</h2>
+            <ol class="list-decimal pl-5 space-y-2 text-gray-700">
+                <li>Upload an Excel file containing email addresses (one per row in the first column)</li>
+                <li>Upload your promotional flyer as an image or create one using HTML</li>
+                <li>Configure your email settings (sender info, subject, etc.)</li>
+                <li>Click "Send Emails" to start your campaign</li>
+                <li>Monitor progress in real-time</li>
+            </ol>
+            
+            <div class="mt-6 p-4 bg-yellow-50 rounded-md border border-yellow-200">
+                <h3 class="font-medium text-yellow-800 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>Email Configuration Required</h3>
+                <p class="text-yellow-700">This app uses Nodemailer for sending emails. To set up email sending:</p>
+                <ol class="list-disc pl-5 mt-2 text-yellow-700">
+                    <li><strong>Copy the environment file:</strong> <code class="bg-gray-200 px-1 rounded">cp .env.example .env</code></li>
+                    <li><strong>For Gmail:</strong> Enable 2FA and generate an App Password</li>
+                    <li><strong>For other providers:</strong> Configure SMTP settings in the .env file</li>
+                    <li><strong>Set environment variables:</strong>
+                        <ul class="list-disc pl-5 mt-1">
+                            <li><code class="bg-gray-200 px-1 rounded">EMAIL_SERVICE=gmail</code> (or outlook, yahoo, custom)</li>
+                            <li><code class="bg-gray-200 px-1 rounded">EMAIL_USER=your_email@gmail.com</code></li>
+                            <li><code class="bg-gray-200 px-1 rounded">EMAIL_PASS=your_app_password</code></li>
+                        </ul>
+                    </li>
+                    <li><strong>Restart the server:</strong> <code class="bg-gray-200 px-1 rounded">npm start</code></li>
+                    <li><strong>Test your configuration</strong> using the test email feature above</li>
+                </ol>
+                
+                <div class="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                    <p class="text-blue-800 text-sm"><strong>📧 Supported Email Providers:</strong></p>
+                    <ul class="text-xs text-blue-700 mt-1 list-disc pl-5">
+                        <li><strong>Gmail:</strong> Use App Password (not your regular password)</li>
+                        <li><strong>Outlook/Hotmail:</strong> Use your regular password</li>
+                        <li><strong>Yahoo:</strong> Use App Password</li>
+                        <li><strong>Custom SMTP:</strong> Set SMTP_HOST, SMTP_PORT, and SMTP_SECURE</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-3 p-3 bg-green-50 rounded border border-green-200">
+                    <p class="text-green-800 text-sm"><strong>🚀 Benefits of Nodemailer:</strong></p>
+                    <ul class="text-xs text-green-700 mt-1 list-disc pl-5">
+                        <li>No size limits (compared to EmailJS 50KB limit)</li>
+                        <li>Better deliverability and control</li>
+                        <li>Support for all major email providers</li>
+                        <li>Enhanced security with environment variables</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const emailDropzone = document.getElementById('emailDropzone');
+        const emailFileInput = document.getElementById('emailFileInput');
+        const browseEmailBtn = document.getElementById('browseEmailBtn');
+        const emailPreview = document.getElementById('emailPreview');
+        const emailList = document.getElementById('emailList');
+        const clearEmailBtn = document.getElementById('clearEmailBtn');
+        
+        const flyerDropzone = document.getElementById('flyerDropzone');
+        const flyerFileInput = document.getElementById('flyerFileInput');
+        const browseFlyerBtn = document.getElementById('browseFlyerBtn');
+        const flyerPreview = document.getElementById('flyerPreview');
+        const flyerContent = document.getElementById('flyerContent');
+        const clearFlyerBtn = document.getElementById('clearFlyerBtn');
+        
+        const imageFlyerBtn = document.getElementById('imageFlyerBtn');
+        const htmlFlyerBtn = document.getElementById('htmlFlyerBtn');
+        const imageFlyerSection = document.getElementById('imageFlyerSection');
+        const htmlFlyerSection = document.getElementById('htmlFlyerSection');
+        const htmlEditor = document.getElementById('htmlEditor');
+        const previewHtmlBtn = document.getElementById('previewHtmlBtn');
+        const loadTemplateBtn = document.getElementById('loadTemplateBtn');
+        const emailSubject = document.getElementById('emailSubject');
+        
+        const fromName = document.getElementById('fromName');
+        const fromEmail = document.getElementById('fromEmail');
+        const emailSubjectInput = document.getElementById('emailSubjectInput');
+        const replyTo = document.getElementById('replyTo');
+        const unsubscribeCheck = document.getElementById('unsubscribeCheck');
+        
+        const sendEmailsBtn = document.getElementById('sendEmailsBtn');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const emailStatusList = document.getElementById('emailStatusList');
+        
+        const testEmail = document.getElementById('testEmail');
+        const sendTestBtn = document.getElementById('sendTestBtn');
+        const testResult = document.getElementById('testResult');
+        
+        // API Configuration
+        const API_BASE_URL = window.location.origin;
+        let serverConfig = { demoMode: true, emailService: 'demo' };
+        
+        // Variables
+        let emailData = [];
+        let flyerData = null;
+        let flyerType = 'image';
+        
+        // Initialize and check server configuration
+        async function initializeApp() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/config`);
+                serverConfig = await response.json();
+                console.log('Server config:', serverConfig);
+                
+                if (serverConfig.demoMode) {
+                    console.log('Running in demo mode - emails will be simulated');
+                } else {
+                    console.log(`Email service configured: ${serverConfig.emailService}`);
+                }
+            } catch (error) {
+                console.error('Failed to fetch server config:', error);
+                serverConfig = { demoMode: true, emailService: 'demo' };
+            }
+        }
+        
+        // Initialize the app
+        initializeApp();
+        
+        // Event Listeners
+        browseEmailBtn.addEventListener('click', () => emailFileInput.click());
+        emailFileInput.addEventListener('change', handleEmailFileSelect);
+        
+        browseFlyerBtn.addEventListener('click', () => flyerFileInput.click());
+        flyerFileInput.addEventListener('change', handleFlyerFileSelect);
+        
+        clearEmailBtn.addEventListener('click', clearEmailData);
+        clearFlyerBtn.addEventListener('click', clearFlyerData);
+        
+        imageFlyerBtn.addEventListener('click', () => switchFlyerType('image'));
+        htmlFlyerBtn.addEventListener('click', () => switchFlyerType('html'));
+        previewHtmlBtn.addEventListener('click', previewHtmlFlyer);
+        loadTemplateBtn.addEventListener('click', loadHtmlTemplate);
+        
+        sendEmailsBtn.addEventListener('click', sendEmails);
+        sendTestBtn.addEventListener('click', sendTestEmail);
+        
+        // Drag and drop for email file
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            emailDropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            emailDropzone.addEventListener(eventName, highlightEmailDropzone, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            emailDropzone.addEventListener(eventName, unhighlightEmailDropzone, false);
+        });
+        
+        emailDropzone.addEventListener('drop', handleEmailDrop, false);
+        
+        // Drag and drop for flyer
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            flyerDropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            flyerDropzone.addEventListener(eventName, highlightFlyerDropzone, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            flyerDropzone.addEventListener(eventName, unhighlightFlyerDropzone, false);
+        });
+        
+        flyerDropzone.addEventListener('drop', handleFlyerDrop, false);
+        
+        // Functions
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function highlightEmailDropzone() {
+            emailDropzone.classList.add('dragover');
+        }
+        
+        function unhighlightEmailDropzone() {
+            emailDropzone.classList.remove('dragover');
+        }
+        
+        function highlightFlyerDropzone() {
+            flyerDropzone.classList.add('dragover');
+        }
+        
+        function unhighlightFlyerDropzone() {
+            flyerDropzone.classList.remove('dragover');
+        }
+        
+        function handleEmailDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            handleEmailFile(file);
+        }
+        
+        function handleFlyerDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            handleFlyerFile(file);
+        }
+        
+        function handleEmailFileSelect(e) {
+            const file = e.target.files[0];
+            handleEmailFile(file);
+        }
+        
+        function handleFlyerFileSelect(e) {
+            const file = e.target.files[0];
+            handleFlyerFile(file);
+        }
+        
+        function handleEmailFile(file) {
+            if (!file) return;
+            
+            // Validate file type
+            if (!validateEmailFile(file)) {
+                alert('Please select a valid Excel (.xlsx, .xls) or CSV (.csv) file.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let emailData_temp = [];
+                
+                if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
+                    // Handle CSV files
+                    emailData_temp = parseCSV(e.target.result);
+                } else {
+                    // Handle Excel files
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first sheet
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    // Extract emails (assuming first column contains emails)
+                    emailData_temp = jsonData
+                        .map(row => row[0])
+                        .filter(email => email && validateEmail(email))
+                        .map(email => email.trim().toLowerCase());
+                }
+                
+                // Remove duplicates
+                emailData = [...new Set(emailData_temp)];
+                
+                if (emailData.length > 0) {
+                    showEmailPreview();
+                    checkSendButtonStatus();
+                } else {
+                    alert('No valid email addresses found in the file.');
+                }
+            };
+            
+            if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+        
+        function handleFlyerFile(file) {
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                alert('Please select an image file.');
+                return;
+            }
+                        
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Compress image if it's too large
+                    compressAndStoreImage(img, e.target.result);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function compressAndStoreImage(img, originalDataUrl) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Calculate new dimensions (max 800px width while maintaining aspect ratio)
+            const maxWidth = 800;
+            const maxHeight = 600;
+            let { width, height } = img;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Try different quality levels to stay under size limit
+            let quality = 0.8;
+            let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            
+            // Estimate base64 size (rough calculation)
+            const estimatedSize = compressedDataUrl.length * 0.75; // base64 is ~33% larger than binary
+            
+            // If still too large, reduce quality further
+            while (estimatedSize > 40000 && quality > 0.3) { // 40KB limit with some buffer
+                quality -= 0.1;
+                compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            }
+            
+            flyerData = {
+                type: 'image',
+                content: compressedDataUrl,
+                originalSize: originalDataUrl.length,
+                compressedSize: compressedDataUrl.length,
+                compressionRatio: Math.round((1 - compressedDataUrl.length / originalDataUrl.length) * 100)
+            };
+            
+            showFlyerPreview();
+            checkSendButtonStatus();
+            
+            // Show compression info if significant compression occurred
+            if (flyerData.compressionRatio > 10) {
+                console.log(`Image compressed by ${flyerData.compressionRatio}% to fit EmailJS limits`);
+            }
+        }
+        
+        function showEmailPreview() {
+            emailPreview.classList.remove('hidden');
+            
+            // Clear previous preview
+            emailList.innerHTML = '';
+            
+            // Show first 10 emails (or all if less than 10)
+            const previewEmails = emailData.slice(0, 10);
+            
+            previewEmails.forEach(email => {
+                const emailItem = document.createElement('div');
+                emailItem.className = 'email-item';
+                emailItem.innerHTML = `
+                    <div>
+                        <span class="text-gray-700 truncate">${email}</span>
+                        <span class="text-xs text-gray-500">Ready</span>
+                    </div>
+                `;
+                emailList.appendChild(emailItem);
+            });
+            
+            // Show count
+            if (emailData.length > 10) {
+                const countItem = document.createElement('div');
+                countItem.className = 'text-center text-sm text-gray-500 mt-2';
+                countItem.textContent = `${emailData.length - 10} more emails`;
+                emailList.appendChild(countItem);
+            }
+        }
+        
+        function showFlyerPreview() {
+            flyerPreview.classList.remove('hidden');
+            
+            if (flyerData.type === 'image') {
+                const sizeKB = Math.round(flyerData.content.length / 1024);
+                const compressionInfo = flyerData.compressionRatio ? ` (compressed ${flyerData.compressionRatio}%)` : '';
+                const sizeWarning = flyerData.content.length > 40000 ? 
+                    '<p class="text-xs text-amber-600 mt-1">⚠️ Large image - may exceed EmailJS 50KB limit</p>' : 
+                    '<p class="text-xs text-green-600 mt-1">✓ Image size OK for EmailJS</p>';
+                
+                flyerContent.innerHTML = 
+                    `<img src="${flyerData.content}" alt="Promotional Flyer" class="max-w-full h-auto rounded-md" />
+                    <p class="text-sm text-gray-500 mt-2 text-center">Image flyer preview (${sizeKB}KB${compressionInfo})</p>
+                    ${sizeWarning}`;
+            } else if (flyerData.type === 'html') {
+                flyerContent.innerHTML = `
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">${flyerData.subject || 'No Subject'}</h3>
+                        <div class="border rounded-md p-4">${flyerData.content}</div>
+                        <p class="text-sm text-gray-500 mt-2 text-center">HTML flyer preview</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function clearEmailData() {
+            emailData = [];
+            emailFileInput.value = '';
+            emailPreview.classList.add('hidden');
+            emailList.innerHTML = '';
+            checkSendButtonStatus();
+        }
+        
+        function clearFlyerData() {
+            flyerData = null;
+            flyerFileInput.value = '';
+            flyerPreview.classList.add('hidden');
+            flyerContent.innerHTML = '';
+            
+            if (flyerType === 'html') {
+                htmlEditor.value = '';
+                emailSubject.value = '';
+            }
+            
+            checkSendButtonStatus();
+        }
+        
+        function switchFlyerType(type) {
+            flyerType = type;
+            
+            if (type === 'image') {
+                imageFlyerSection.classList.remove('hidden');
+                htmlFlyerSection.classList.add('hidden');
+                
+                // Update Image button to active state
+                imageFlyerBtn.className = 'flex-1 py-2 px-4 border rounded-md bg-indigo-600 text-white';
+                imageFlyerBtn.style.cssText = 'background-color: #4f46e5 !important;';
+                imageFlyerBtn.onmouseenter = () => { imageFlyerBtn.style.backgroundColor = '#4338ca'; };
+                imageFlyerBtn.onmouseleave = () => { imageFlyerBtn.style.backgroundColor = '#4f46e5'; };
+                
+                // Update HTML button to inactive state
+                htmlFlyerBtn.className = 'flex-1 py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50';
+                htmlFlyerBtn.style.cssText = '';
+                htmlFlyerBtn.onmouseenter = null;
+                htmlFlyerBtn.onmouseleave = null;
+            } else {
+                imageFlyerSection.classList.add('hidden');
+                htmlFlyerSection.classList.remove('hidden');
+                
+                // Update HTML button to active state
+                htmlFlyerBtn.className = 'flex-1 py-2 px-4 border rounded-md bg-indigo-600 text-white';
+                htmlFlyerBtn.style.cssText = 'background-color: #4f46e5 !important;';
+                htmlFlyerBtn.onmouseenter = () => { htmlFlyerBtn.style.backgroundColor = '#4338ca'; };
+                htmlFlyerBtn.onmouseleave = () => { htmlFlyerBtn.style.backgroundColor = '#4f46e5'; };
+                
+                // Update Image button to inactive state
+                imageFlyerBtn.className = 'flex-1 py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50';
+                imageFlyerBtn.style.cssText = '';
+                imageFlyerBtn.onmouseenter = null;
+                imageFlyerBtn.onmouseleave = null;
+            }
+        }
+        
+        function previewHtmlFlyer() {
+            const htmlContent = htmlEditor.value.trim();
+            const subject = emailSubject.value.trim();
+            
+            if (!htmlContent) {
+                alert('Please enter some HTML content for the flyer.');
+                return;
+            }
+            
+            flyerData = {
+                type: 'html',
+                content: htmlContent,
+                subject: subject || 'No Subject'
+            };
+            
+            showFlyerPreview();
+            checkSendButtonStatus();
+        }
+        
+        function loadHtmlTemplate() {
+            const templateSubject = "🎉 Flash Sale - 50% OFF Everything!";
+            const templateHTML = `<div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center;">
+    <h1 style="margin: 0 0 20px 0; font-size: 28px; font-weight: bold;">🎉 FLASH SALE!</h1>
+    
+    <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h2 style="margin: 0 0 10px 0; font-size: 24px; color: #FFD700;">50% OFF Everything!</h2>
+        <p style="margin: 0; font-size: 16px;">Limited Time Offer - This Weekend Only</p>
+    </div>
+    
+    <div style="margin: 25px 0;">
+        <p style="font-size: 18px; margin: 10px 0;">✨ Premium Products</p>
+        <p style="font-size: 18px; margin: 10px 0;">🚚 Free Shipping</p>
+        <p style="font-size: 18px; margin: 10px 0;">💯 100% Satisfaction Guarantee</p>
+    </div>
+    
+    <a href="#" style="display: inline-block; background: #FF6B6B; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 18px; margin: 20px 0;">
+        SHOP NOW
+    </a>
+    
+    <p style="font-size: 12px; margin: 20px 0 0 0; opacity: 0.8;">
+        Hurry! Sale ends Sunday at midnight
+    </p>
+</div>`;
+            
+            emailSubject.value = templateSubject;
+            htmlEditor.value = templateHTML;
+            
+            // Auto-preview the template
+            flyerData = {
+                type: 'html',
+                content: templateHTML,
+                subject: templateSubject
+            };
+            
+            showFlyerPreview();
+            checkSendButtonStatus();
+            
+            console.log('Template loaded successfully');
+        }
+        
+        function checkSendButtonStatus() {
+            if (emailData.length > 0 && flyerData) {
+                sendEmailsBtn.disabled = false;
+            } else {
+                sendEmailsBtn.disabled = true;
+            }
+        }
+        
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        // Validate file types more strictly
+        function validateEmailFile(file) {
+            const validTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel', // .xls
+                'text/csv' // .csv
+            ];
+            
+            return validTypes.includes(file.type) || file.name.match(/\.(xlsx?|csv)$/i);
+        }
+        
+        // Add CSV support
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const emails = [];
+            
+            lines.forEach(line => {
+                const columns = line.split(',');
+                if (columns[0] && validateEmail(columns[0].trim())) {
+                    emails.push(columns[0].trim().toLowerCase());
+                }
+            });
+            
+            return emails;
+        }
+        
+        async function sendEmails() {
+            if (emailData.length === 0 || !flyerData) {
+                alert('Please upload both email list and flyer before sending.');
+                return;
+            }
+            
+            console.log('Starting email send process...');
+            console.log('Server config:', serverConfig);
+            
+            // Show configuration status
+            if (serverConfig.demoMode) {
+                alert('⚠️ Running in Demo Mode!\n\nTo send real emails:\n1. Set up email service (Gmail, Outlook, etc.)\n2. Configure environment variables\n3. Restart the server\n\nFor now, this will simulate sending emails.');
+            } else {
+                console.log(`Using ${serverConfig.emailService} email service`);
+            }
+            
+            // Update UI
+            sendEmailsBtn.disabled = true;
+            sendEmailsBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+            progressSection.classList.remove('hidden');
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+            emailStatusList.innerHTML = '';
+            
+            // Prepare email data
+            const emailPayload = {
+                emails: emailData,
+                flyerData: flyerData,
+                fromName: fromName.value || 'Marketing Team',
+                fromEmail: fromEmail.value || 'noreply@example.com',
+                subject: emailSubjectInput.value || 'Exciting News! Check Out Our Latest Offers',
+                replyTo: replyTo.value || 'contact@example.com',
+                includeUnsubscribe: unsubscribeCheck.checked
+            };
+            
+            console.log('Email payload prepared:', {
+                emailCount: emailPayload.emails.length,
+                flyerType: flyerData.type,
+                fromName: emailPayload.fromName,
+                subject: emailPayload.subject
+            });
+            
+            // Check payload size for image flyers
+            if (flyerData.type === 'image') {
+                const imageSize = flyerData.content.length;
+                console.log('Image flyer size:', {
+                    imageDataLength: imageSize,
+                    imageSizeKB: Math.round(imageSize / 1024)
+                });
+                
+                // Warn about large images (5MB limit for server)
+                if (imageSize > 5 * 1024 * 1024) {
+                    alert(`⚠️ Image very large!\n\nThe image is approximately ${Math.round(imageSize/(1024*1024))}MB.\n\nLarge images may:\n• Take longer to send\n• Be rejected by email providers\n• Consider using HTML flyer instead`);
+                }
+            }
+            
+            try {
+                // Send request to backend
+                const response = await fetch(`${API_BASE_URL}/api/send-emails`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailPayload)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Campaign result:', result);
+                
+                // Process results and update UI
+                const totalEmails = result.totalEmails;
+                const successCount = result.successCount;
+                const errorCount = result.errorCount;
+                
+                // Update progress to 100%
+                progressFill.style.width = '100%';
+                progressText.textContent = '100%';
+                
+                // Display individual email results
+                result.results.forEach(emailResult => {
+                    addEmailStatus(
+                        emailResult.email, 
+                        emailResult.success, 
+                        emailResult.message
+                    );
+                });
+                
+                // Update button when done
+                sendEmailsBtn.innerHTML = `<i class="fas fa-check mr-2"></i> Done (${successCount} sent, ${errorCount} failed)`;
+                
+                console.log(`Campaign completed: ${successCount} sent, ${errorCount} failed`);
+                
+                // Show summary
+                const summary = document.createElement('div');
+                summary.className = 'mt-4 p-3 bg-gray-100 rounded-md';
+                summary.innerHTML = `
+                    <div>
+                        <p class="font-medium">Campaign Summary:</p>
+                        <p>Total emails: ${totalEmails}</p>
+                        <p class="text-green-600">Successfully sent: ${successCount}</p>
+                        <p class="text-red-600">Failed to send: ${errorCount}</p>
+                    </div>
+                `;
+                emailStatusList.prepend(summary);
+                
+            } catch (error) {
+                console.error('Campaign failed:', error);
+                
+                // Reset UI
+                sendEmailsBtn.disabled = false;
+                sendEmailsBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Send Emails';
+                progressSection.classList.add('hidden');
+                
+                // Show error message
+                alert(`❌ Campaign Failed!\n\nError: ${error.message}\n\nPlease check:\n• Server is running\n• Email configuration is correct\n• Network connection`);
+                
+                // Add error status
+                addEmailStatus('Campaign Error', false, error.message);
+            }
+        }
+        
+        async function sendTestEmail() {
+            const testEmailValue = testEmail.value.trim();
+            
+            if (!testEmailValue) {
+                showTestResult('Please enter a test email address', 'error');
+                return;
+            }
+            
+            if (!validateEmail(testEmailValue)) {
+                showTestResult('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            // Update button state
+            sendTestBtn.disabled = true;
+            sendTestBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/test-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        testEmail: testEmailValue
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showTestResult(`✅ ${result.message}`, 'success');
+                } else {
+                    showTestResult(`❌ ${result.error || result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Test email failed:', error);
+                showTestResult(`❌ Failed to send test email: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                sendTestBtn.disabled = false;
+                sendTestBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Send Test';
+            }
+        }
+        
+        function showTestResult(message, type) {
+            testResult.className = `mt-2 text-sm ${type === 'success' ? 'text-green-700' : 'text-red-700'}`;
+            testResult.textContent = message;
+            testResult.classList.remove('hidden');
+            
+            // Hide result after 5 seconds
+            setTimeout(() => {
+                testResult.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function addEmailStatus(email, success, message = '') {
+            const statusItem = document.createElement('div');
+            statusItem.className = `email-item ${success ? 'success' : 'error'}`;
+            
+            const statusIcon = success ? 
+                '<i class="fas fa-check-circle text-green-500 mr-2"></i>' : 
+                '<i class="fas fa-times-circle text-red-500 mr-2"></i>';
+            
+            statusItem.innerHTML = `
+                <div>
+                    <div class="flex items-center">
+                        ${statusIcon}
+                        <span class="text-gray-700 truncate">${email}</span>
+                    </div>
+                    <span class="text-xs ${success ? 'text-green-600' : 'text-red-600'}">${message || (success ? 'Sent successfully' : 'Failed to send')}</span>
+                </div>
+            `;
+            
+            emailStatusList.appendChild(statusItem);
+            emailStatusList.scrollTop = emailStatusList.scrollHeight;
+        }
+    </script>
+</body>
+</html>
