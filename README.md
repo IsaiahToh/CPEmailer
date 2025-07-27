@@ -12,8 +12,10 @@ A modern, responsive web application for managing bulk email campaigns with drag
 - ✅ **Responsive Design**: Works on desktop, tablet, and mobile devices
 - ✅ **Nodemailer Integration**: Reliable email sending with major providers
 - ✅ **Test Email Feature**: Verify your configuration before sending campaigns
-- ✅ **No Size Limits**: Send large images without restrictions
 - ✅ **Enhanced Security**: Environment-based configuration
+- ✅ **Image Attachments**: Proper email attachments instead of embedded base64
+- ✅ **Production Ready**: Optimized for deployment on platforms like Render.com
+- ✅ **Better Deliverability**: Reduced spam filter triggers with proper attachments
 
 ## Quick Start
 
