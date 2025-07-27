@@ -182,7 +182,9 @@ app.post('/api/send-emails', async (req, res) => {
                 
                 htmlContent = `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        ${flyerData.textBefore ? `<div style="margin-bottom: 20px; line-height: 1.6; color: #333;">${flyerData.textBefore.replace(/\n/g, '<br>')}</div>` : ''}
                         <img src="cid:${contentId}" alt="Promotional Flyer" style="max-width: 100%; height: auto; border-radius: 8px;">
+                        ${flyerData.textAfter ? `<div style="margin-top: 20px; line-height: 1.6; color: #333;">${flyerData.textAfter.replace(/\n/g, '<br>')}</div>` : ''}
                         ${includeUnsubscribe ? '<p style="font-size: 12px; color: #666; margin-top: 20px;"><a href="#" style="color: #4f46e5;">Unsubscribe</a></p>' : ''}
                     </div>
                 `;
@@ -356,7 +358,9 @@ app.post('/api/test-email', async (req, res) => {
                     
                     htmlContent += `
                         <p>Your flyer attachment is working correctly:</p>
+                        ${flyerData.textBefore ? `<div style="margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 4px;"><strong>Text Before:</strong><br>${flyerData.textBefore.replace(/\n/g, '<br>')}</div>` : ''}
                         <img src="cid:${contentId}" alt="Test Flyer" style="max-width: 100%; height: auto; border-radius: 8px; margin: 20px 0;">
+                        ${flyerData.textAfter ? `<div style="margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 4px;"><strong>Text After:</strong><br>${flyerData.textAfter.replace(/\n/g, '<br>')}</div>` : ''}
                     `;
                 } catch (error) {
                     console.error('Error processing test image:', error);

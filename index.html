@@ -119,15 +119,27 @@
 
                     <!-- Image Flyer Upload -->
                     <div id="imageFlyerSection">
-                        <div id="flyerDropzone" class="dropzone">
-                            <div class="flex flex-col items-center justify-center py-6">
-                                <i class="fas fa-image text-4xl text-blue-500 mb-3"></i>
-                                <p class="text-gray-600 mb-2">Drag & drop your flyer image here</p>
-                                <p class="text-sm text-gray-500 mb-4">or</p>
-                                <button id="browseFlyerBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
-                                    Browse Files
-                                </button>
-                                <input type="file" id="flyerFileInput" accept="image/*" class="hidden">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Text Before Image (Optional)</label>
+                                <textarea id="textBeforeImage" rows="2" placeholder="e.g., Dear Valued Customer,&#10;&#10;We're excited to share this special offer with you:" class="w-full px-3 py-2 border rounded-md"></textarea>
+                            </div>
+                            
+                            <div id="flyerDropzone" class="dropzone">
+                                <div class="flex flex-col items-center justify-center py-6">
+                                    <i class="fas fa-image text-4xl text-blue-500 mb-3"></i>
+                                    <p class="text-gray-600 mb-2">Drag & drop your flyer image here</p>
+                                    <p class="text-sm text-gray-500 mb-4">or</p>
+                                    <button id="browseFlyerBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                        Browse Files
+                                    </button>
+                                    <input type="file" id="flyerFileInput" accept="image/*" class="hidden">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Text After Image (Optional)</label>
+                                <textarea id="textAfterImage" rows="3" placeholder="e.g., Thank you for being a loyal customer!&#10;&#10;Best regards,&#10;The Marketing Team" class="w-full px-3 py-2 border rounded-md"></textarea>
                             </div>
                         </div>
                     </div>
@@ -363,6 +375,8 @@
         const flyerPreview = document.getElementById('flyerPreview');
         const flyerContent = document.getElementById('flyerContent');
         const clearFlyerBtn = document.getElementById('clearFlyerBtn');
+        const textBeforeImage = document.getElementById('textBeforeImage');
+        const textAfterImage = document.getElementById('textAfterImage');
         
         const imageFlyerBtn = document.getElementById('imageFlyerBtn');
         const formFlyerBtn = document.getElementById('formFlyerBtn');
@@ -457,6 +471,10 @@
         
         // Auto-generate subject line when main focus changes
         mainFocus.addEventListener('input', updateFormSubject);
+        
+        // Update flyer data when image text changes
+        textBeforeImage.addEventListener('input', updateImageFlyerData);
+        textAfterImage.addEventListener('input', updateImageFlyerData);
         
         // Drag and drop for email file
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -645,6 +663,8 @@
             flyerData = {
                 type: 'image',
                 content: compressedDataUrl,
+                textBefore: textBeforeImage.value.trim(),
+                textAfter: textAfterImage.value.trim(),
                 originalSize: originalDataUrl.length,
                 compressedSize: compressedDataUrl.length,
                 compressionRatio: Math.round((1 - compressedDataUrl.length / originalDataUrl.length) * 100)
@@ -699,10 +719,31 @@
                     '<p class="text-xs text-amber-600 mt-1">⚠️ Large image - may exceed EmailJS 50KB limit</p>' : 
                     '<p class="text-xs text-green-600 mt-1">✓ Image size OK for EmailJS</p>';
                 
-                flyerContent.innerHTML = 
-                    `<img src="${flyerData.content}" alt="Promotional Flyer" class="max-w-full h-auto rounded-md" />
-                    <p class="text-sm text-gray-500 mt-2 text-center">Image flyer preview (${sizeKB}KB${compressionInfo})</p>
+                let previewHtml = '';
+                
+                // Add text before image if provided
+                if (flyerData.textBefore) {
+                    previewHtml += `<div class="mb-4 p-3 bg-blue-50 border-l-4 border-blue-300 rounded">
+                        <p class="text-sm font-medium text-blue-800 mb-1">Text Before Image:</p>
+                        <div class="text-gray-700 whitespace-pre-line">${flyerData.textBefore}</div>
+                    </div>`;
+                }
+                
+                // Add the image
+                previewHtml += `<img src="${flyerData.content}" alt="Promotional Flyer" class="max-w-full h-auto rounded-md mx-auto block" />`;
+                
+                // Add text after image if provided
+                if (flyerData.textAfter) {
+                    previewHtml += `<div class="mt-4 p-3 bg-green-50 border-l-4 border-green-300 rounded">
+                        <p class="text-sm font-medium text-green-800 mb-1">Text After Image:</p>
+                        <div class="text-gray-700 whitespace-pre-line">${flyerData.textAfter}</div>
+                    </div>`;
+                }
+                
+                previewHtml += `<p class="text-sm text-gray-500 mt-2 text-center">Image flyer preview (${sizeKB}KB${compressionInfo})</p>
                     ${sizeWarning}`;
+                
+                flyerContent.innerHTML = previewHtml;
             } else if (flyerData.type === 'html') {
                 flyerContent.innerHTML = `
                     <div>
@@ -742,6 +783,10 @@
                 callToAction.value = '';
                 colorTheme.value = 'purple-blue';
                 formSubject.value = '';
+            } else if (flyerType === 'image') {
+                // Clear image text inputs
+                textBeforeImage.value = '';
+                textAfterImage.value = '';
             }
             
             checkSendButtonStatus();
@@ -957,6 +1002,15 @@
         
         function previewFormFlyer() {
             generateFormFlyer();
+        }
+        
+        function updateImageFlyerData() {
+            // Update flyer data if we have an image loaded
+            if (flyerData && flyerData.type === 'image') {
+                flyerData.textBefore = textBeforeImage.value.trim();
+                flyerData.textAfter = textAfterImage.value.trim();
+                showFlyerPreview();
+            }
         }
         
         function checkSendButtonStatus() {
