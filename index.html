@@ -183,6 +183,11 @@
                             </div>
                             
                             <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Button Link (URL)</label>
+                                <input type="url" id="buttonLink" placeholder="e.g., https://yourstore.com/sale" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
                                 <label class="block text-gray-700 mb-1 font-medium">Color Theme</label>
                                 <select id="colorTheme" class="w-full px-3 py-2 border rounded-md">
                                     <option value="purple-blue">Purple & Blue (Default)</option>
@@ -193,11 +198,6 @@
                                     <option value="orange-yellow">Orange & Yellow</option>
                                     <option value="dark-elegant">Dark & Elegant</option>
                                 </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-gray-700 mb-1 font-medium">Subject Line</label>
-                                <input type="text" id="formSubject" placeholder="Email subject will auto-generate from Main Focus" class="w-full px-3 py-2 border rounded-md bg-gray-50" readonly>
                             </div>
                         </div>
                         
@@ -398,7 +398,6 @@
         const locationContact = document.getElementById('locationContact');
         const callToAction = document.getElementById('callToAction');
         const colorTheme = document.getElementById('colorTheme');
-        const formSubject = document.getElementById('formSubject');
         const generateFlyerBtn = document.getElementById('generateFlyerBtn');
         const previewFormFlyerBtn = document.getElementById('previewFormFlyerBtn');
         
@@ -468,9 +467,6 @@
         
         sendEmailsBtn.addEventListener('click', sendEmails);
         sendTestBtn.addEventListener('click', sendTestEmail);
-        
-        // Auto-generate subject line when main focus changes
-        mainFocus.addEventListener('input', updateFormSubject);
         
         // Update flyer data when image text changes
         textBeforeImage.addEventListener('input', updateImageFlyerData);
@@ -781,8 +777,8 @@
                 detail3.value = '';
                 locationContact.value = '';
                 callToAction.value = '';
+                document.getElementById('buttonLink').value = '';
                 colorTheme.value = 'purple-blue';
-                formSubject.value = '';
             } else if (flyerType === 'image') {
                 // Clear image text inputs
                 textBeforeImage.value = '';
@@ -822,7 +818,6 @@
             } else if (type === 'form') {
                 formFlyerSection.classList.remove('hidden');
                 formFlyerBtn.className = 'flex-1 py-2 px-3 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm';
-                updateFormSubject(); // Update subject when switching to form
             } else if (type === 'html') {
                 htmlFlyerSection.classList.remove('hidden');
                 htmlFlyerBtn.className = 'flex-1 py-2 px-3 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm';
@@ -889,15 +884,6 @@
             console.log('Template loaded successfully');
         }
         
-        function updateFormSubject() {
-            const mainFocusValue = mainFocus.value.trim();
-            if (mainFocusValue) {
-                formSubject.value = `🎉 ${mainFocusValue}`;
-            } else {
-                formSubject.value = '';
-            }
-        }
-        
         function getColorTheme(theme) {
             const themes = {
                 'purple-blue': {
@@ -947,6 +933,7 @@
             const detail3Value = detail3.value.trim();
             const locationContactValue = locationContact.value.trim();
             const callToActionValue = callToAction.value.trim();
+            const buttonLinkValue = document.getElementById('buttonLink').value.trim();
             const colorThemeValue = colorTheme.value;
             
             if (!mainFocusValue) {
@@ -960,7 +947,7 @@
             }
             
             const colors = getColorTheme(colorThemeValue);
-            const subject = formSubject.value || `🎉 ${mainFocusValue}`;
+            const subject = emailSubjectInput.value || `🎉 ${mainFocusValue}`;
             
             // Build details section
             let detailsHtml = '';
@@ -979,7 +966,7 @@
         ${detailsHtml}
     </div>` : ''}
     
-    <a href="#" style="display: inline-block; background: ${colors.button}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 18px; margin: 20px 0;">
+    <a href="${buttonLinkValue || '#'}" style="display: inline-block; background: ${colors.button}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 18px; margin: 20px 0;">
         ${callToActionValue}
     </a>
     
