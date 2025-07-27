@@ -104,12 +104,15 @@
                     
                     <div class="mb-4">
                         <label class="block text-gray-700 mb-2">Flyer Type</label>
-                        <div class="flex space-x-4">
-                            <button id="imageFlyerBtn" class="flex-1 py-2 px-4 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
-                                <i class="fas fa-image mr-2"></i> Image Flyer
+                        <div class="flex space-x-2">
+                            <button id="imageFlyerBtn" class="flex-1 py-2 px-3 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm">
+                                <i class="fas fa-image mr-1"></i> Image
                             </button>
-                            <button id="htmlFlyerBtn" class="flex-1 py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50">
-                                <i class="fas fa-code mr-2"></i> HTML Flyer
+                            <button id="formFlyerBtn" class="flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm">
+                                <i class="fas fa-edit mr-1"></i> Form
+                            </button>
+                            <button id="htmlFlyerBtn" class="flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm">
+                                <i class="fas fa-code mr-1"></i> HTML
                             </button>
                         </div>
                     </div>
@@ -126,6 +129,73 @@
                                 </button>
                                 <input type="file" id="flyerFileInput" accept="image/*" class="hidden">
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Form-based Flyer Builder -->
+                    <div id="formFlyerSection" class="hidden">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Main Focus</label>
+                                <input type="text" id="mainFocus" placeholder="e.g., Flash Sale - 50% OFF Everything!" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Timeline</label>
+                                <input type="text" id="timeline" placeholder="e.g., Limited Time Offer - This Weekend Only" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Detail 1</label>
+                                <input type="text" id="detail1" placeholder="e.g., Premium Products" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Detail 2</label>
+                                <input type="text" id="detail2" placeholder="e.g., Free Shipping" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Detail 3</label>
+                                <input type="text" id="detail3" placeholder="e.g., 100% Satisfaction Guarantee" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Location and Contact Details</label>
+                                <textarea id="locationContact" rows="2" placeholder="e.g., Visit us at 123 Main St or call (555) 123-4567" class="w-full px-3 py-2 border rounded-md"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Call to Action</label>
+                                <input type="text" id="callToAction" placeholder="e.g., SHOP NOW" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Color Theme</label>
+                                <select id="colorTheme" class="w-full px-3 py-2 border rounded-md">
+                                    <option value="purple-blue">Purple & Blue (Default)</option>
+                                    <option value="red-orange">Red & Orange</option>
+                                    <option value="green-teal">Green & Teal</option>
+                                    <option value="blue-navy">Blue & Navy</option>
+                                    <option value="pink-purple">Pink & Purple</option>
+                                    <option value="orange-yellow">Orange & Yellow</option>
+                                    <option value="dark-elegant">Dark & Elegant</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-1 font-medium">Subject Line</label>
+                                <input type="text" id="formSubject" placeholder="Email subject will auto-generate from Main Focus" class="w-full px-3 py-2 border rounded-md bg-gray-50" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2 mt-4">
+                            <button id="generateFlyerBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
+                                <i class="fas fa-magic mr-2"></i> Generate Flyer
+                            </button>
+                            <button id="previewFormFlyerBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                <i class="fas fa-eye mr-2"></i> Preview
+                            </button>
                         </div>
                     </div>
 
@@ -295,13 +365,28 @@
         const clearFlyerBtn = document.getElementById('clearFlyerBtn');
         
         const imageFlyerBtn = document.getElementById('imageFlyerBtn');
+        const formFlyerBtn = document.getElementById('formFlyerBtn');
         const htmlFlyerBtn = document.getElementById('htmlFlyerBtn');
         const imageFlyerSection = document.getElementById('imageFlyerSection');
+        const formFlyerSection = document.getElementById('formFlyerSection');
         const htmlFlyerSection = document.getElementById('htmlFlyerSection');
         const htmlEditor = document.getElementById('htmlEditor');
         const previewHtmlBtn = document.getElementById('previewHtmlBtn');
         const loadTemplateBtn = document.getElementById('loadTemplateBtn');
         const emailSubject = document.getElementById('emailSubject');
+        
+        // Form flyer elements
+        const mainFocus = document.getElementById('mainFocus');
+        const timeline = document.getElementById('timeline');
+        const detail1 = document.getElementById('detail1');
+        const detail2 = document.getElementById('detail2');
+        const detail3 = document.getElementById('detail3');
+        const locationContact = document.getElementById('locationContact');
+        const callToAction = document.getElementById('callToAction');
+        const colorTheme = document.getElementById('colorTheme');
+        const formSubject = document.getElementById('formSubject');
+        const generateFlyerBtn = document.getElementById('generateFlyerBtn');
+        const previewFormFlyerBtn = document.getElementById('previewFormFlyerBtn');
         
         const fromName = document.getElementById('fromName');
         const fromEmail = document.getElementById('fromEmail');
@@ -360,12 +445,18 @@
         clearFlyerBtn.addEventListener('click', clearFlyerData);
         
         imageFlyerBtn.addEventListener('click', () => switchFlyerType('image'));
+        formFlyerBtn.addEventListener('click', () => switchFlyerType('form'));
         htmlFlyerBtn.addEventListener('click', () => switchFlyerType('html'));
         previewHtmlBtn.addEventListener('click', previewHtmlFlyer);
         loadTemplateBtn.addEventListener('click', loadHtmlTemplate);
+        generateFlyerBtn.addEventListener('click', generateFormFlyer);
+        previewFormFlyerBtn.addEventListener('click', previewFormFlyer);
         
         sendEmailsBtn.addEventListener('click', sendEmails);
         sendTestBtn.addEventListener('click', sendTestEmail);
+        
+        // Auto-generate subject line when main focus changes
+        mainFocus.addEventListener('input', updateFormSubject);
         
         // Drag and drop for email file
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -640,6 +731,17 @@
             if (flyerType === 'html') {
                 htmlEditor.value = '';
                 emailSubject.value = '';
+            } else if (flyerType === 'form') {
+                // Clear form inputs
+                mainFocus.value = '';
+                timeline.value = '';
+                detail1.value = '';
+                detail2.value = '';
+                detail3.value = '';
+                locationContact.value = '';
+                callToAction.value = '';
+                colorTheme.value = 'purple-blue';
+                formSubject.value = '';
             }
             
             checkSendButtonStatus();
@@ -648,36 +750,37 @@
         function switchFlyerType(type) {
             flyerType = type;
             
+            // Reset all button styles
+            imageFlyerBtn.className = 'flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm';
+            formFlyerBtn.className = 'flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm';
+            htmlFlyerBtn.className = 'flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm';
+            
+            // Reset all styles
+            imageFlyerBtn.style.cssText = '';
+            formFlyerBtn.style.cssText = '';
+            htmlFlyerBtn.style.cssText = '';
+            imageFlyerBtn.onmouseenter = null;
+            imageFlyerBtn.onmouseleave = null;
+            formFlyerBtn.onmouseenter = null;
+            formFlyerBtn.onmouseleave = null;
+            htmlFlyerBtn.onmouseenter = null;
+            htmlFlyerBtn.onmouseleave = null;
+            
+            // Hide all sections
+            imageFlyerSection.classList.add('hidden');
+            formFlyerSection.classList.add('hidden');
+            htmlFlyerSection.classList.add('hidden');
+            
             if (type === 'image') {
                 imageFlyerSection.classList.remove('hidden');
-                htmlFlyerSection.classList.add('hidden');
-                
-                // Update Image button to active state
-                imageFlyerBtn.className = 'flex-1 py-2 px-4 border rounded-md bg-indigo-600 text-white';
-                imageFlyerBtn.style.cssText = 'background-color: #4f46e5 !important;';
-                imageFlyerBtn.onmouseenter = () => { imageFlyerBtn.style.backgroundColor = '#4338ca'; };
-                imageFlyerBtn.onmouseleave = () => { imageFlyerBtn.style.backgroundColor = '#4f46e5'; };
-                
-                // Update HTML button to inactive state
-                htmlFlyerBtn.className = 'flex-1 py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50';
-                htmlFlyerBtn.style.cssText = '';
-                htmlFlyerBtn.onmouseenter = null;
-                htmlFlyerBtn.onmouseleave = null;
-            } else {
-                imageFlyerSection.classList.add('hidden');
+                imageFlyerBtn.className = 'flex-1 py-2 px-3 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm';
+            } else if (type === 'form') {
+                formFlyerSection.classList.remove('hidden');
+                formFlyerBtn.className = 'flex-1 py-2 px-3 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm';
+                updateFormSubject(); // Update subject when switching to form
+            } else if (type === 'html') {
                 htmlFlyerSection.classList.remove('hidden');
-                
-                // Update HTML button to active state
-                htmlFlyerBtn.className = 'flex-1 py-2 px-4 border rounded-md bg-indigo-600 text-white';
-                htmlFlyerBtn.style.cssText = 'background-color: #4f46e5 !important;';
-                htmlFlyerBtn.onmouseenter = () => { htmlFlyerBtn.style.backgroundColor = '#4338ca'; };
-                htmlFlyerBtn.onmouseleave = () => { htmlFlyerBtn.style.backgroundColor = '#4f46e5'; };
-                
-                // Update Image button to inactive state
-                imageFlyerBtn.className = 'flex-1 py-2 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50';
-                imageFlyerBtn.style.cssText = '';
-                imageFlyerBtn.onmouseenter = null;
-                imageFlyerBtn.onmouseleave = null;
+                htmlFlyerBtn.className = 'flex-1 py-2 px-3 border rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm';
             }
         }
         
@@ -739,6 +842,121 @@
             checkSendButtonStatus();
             
             console.log('Template loaded successfully');
+        }
+        
+        function updateFormSubject() {
+            const mainFocusValue = mainFocus.value.trim();
+            if (mainFocusValue) {
+                formSubject.value = `🎉 ${mainFocusValue}`;
+            } else {
+                formSubject.value = '';
+            }
+        }
+        
+        function getColorTheme(theme) {
+            const themes = {
+                'purple-blue': {
+                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    accent: '#FFD700',
+                    button: '#FF6B6B'
+                },
+                'red-orange': {
+                    gradient: 'linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%)',
+                    accent: '#FFE082',
+                    button: '#D32F2F'
+                },
+                'green-teal': {
+                    gradient: 'linear-gradient(135deg, #4caf50 0%, #26a69a 100%)',
+                    accent: '#C8E6C9',
+                    button: '#1976D2'
+                },
+                'blue-navy': {
+                    gradient: 'linear-gradient(135deg, #2196f3 0%, #1565c0 100%)',
+                    accent: '#E3F2FD',
+                    button: '#FF5722'
+                },
+                'pink-purple': {
+                    gradient: 'linear-gradient(135deg, #e91e63 0%, #9c27b0 100%)',
+                    accent: '#F8BBD9',
+                    button: '#4CAF50'
+                },
+                'orange-yellow': {
+                    gradient: 'linear-gradient(135deg, #ff9800 0%, #ffc107 100%)',
+                    accent: '#FFF3E0',
+                    button: '#E91E63'
+                },
+                'dark-elegant': {
+                    gradient: 'linear-gradient(135deg, #424242 0%, #212121 100%)',
+                    accent: '#FFD54F',
+                    button: '#FF4081'
+                }
+            };
+            return themes[theme] || themes['purple-blue'];
+        }
+        
+        function generateFormFlyer() {
+            const mainFocusValue = mainFocus.value.trim();
+            const timelineValue = timeline.value.trim();
+            const detail1Value = detail1.value.trim();
+            const detail2Value = detail2.value.trim();
+            const detail3Value = detail3.value.trim();
+            const locationContactValue = locationContact.value.trim();
+            const callToActionValue = callToAction.value.trim();
+            const colorThemeValue = colorTheme.value;
+            
+            if (!mainFocusValue) {
+                alert('Please enter a Main Focus for your flyer.');
+                return;
+            }
+            
+            if (!callToActionValue) {
+                alert('Please enter a Call to Action for your flyer.');
+                return;
+            }
+            
+            const colors = getColorTheme(colorThemeValue);
+            const subject = formSubject.value || `🎉 ${mainFocusValue}`;
+            
+            // Build details section
+            let detailsHtml = '';
+            if (detail1Value) detailsHtml += `<p style="font-size: 18px; margin: 10px 0;">✨ ${detail1Value}</p>`;
+            if (detail2Value) detailsHtml += `<p style="font-size: 18px; margin: 10px 0;">🚚 ${detail2Value}</p>`;
+            if (detail3Value) detailsHtml += `<p style="font-size: 18px; margin: 10px 0;">💯 ${detail3Value}</p>`;
+            
+            const htmlContent = `<div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; background: ${colors.gradient}; color: white; padding: 30px; border-radius: 10px; text-align: center;">
+    <h1 style="margin: 0 0 20px 0; font-size: 28px; font-weight: bold;">${mainFocusValue}</h1>
+    
+    ${timelineValue ? `<div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0; font-size: 16px;">${timelineValue}</p>
+    </div>` : ''}
+    
+    ${detailsHtml ? `<div style="margin: 25px 0;">
+        ${detailsHtml}
+    </div>` : ''}
+    
+    <a href="#" style="display: inline-block; background: ${colors.button}; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 18px; margin: 20px 0;">
+        ${callToActionValue}
+    </a>
+    
+    ${locationContactValue ? `<div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+        <p style="font-size: 14px; margin: 0; line-height: 1.4;">${locationContactValue.replace(/\n/g, '<br>')}</p>
+    </div>` : ''}
+</div>`;
+
+            flyerData = {
+                type: 'html',
+                content: htmlContent,
+                subject: subject
+            };
+            
+            showFlyerPreview();
+            checkSendButtonStatus();
+            
+            console.log('Form flyer generated successfully');
+        }
+        
+        function previewFormFlyer() {
+            generateFormFlyer();
         }
         
         function checkSendButtonStatus() {
