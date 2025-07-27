@@ -53,7 +53,7 @@ function createTransporter() {
         user: config.auth.user
     });
 
-    return nodemailer.createTransporter(config);
+    return nodemailer.createTransport(config);
 }
 
 // Initialize transporter
