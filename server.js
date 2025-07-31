@@ -24,12 +24,6 @@ const upload = multer({
 let transporter;
 
 function createTransporter() {
-    // Check if we're in demo mode
-    if (process.env.EMAIL_SERVICE === 'demo' || !process.env.EMAIL_SERVICE) {
-        console.log('Running in demo mode - emails will be simulated');
-        return null;
-    }
-
     const config = {
         service: process.env.EMAIL_SERVICE || 'gmail',
         auth: {
@@ -60,15 +54,13 @@ function createTransporter() {
 transporter = createTransporter();
 
 // Verify transporter configuration
-if (transporter) {
-    transporter.verify(function(error, success) {
-        if (error) {
-            console.log('Transporter verification failed:', error);
-        } else {
-            console.log('Email server is ready to send messages');
-        }
-    });
-}
+transporter.verify(function(error, success) {
+    if (error) {
+        console.log('Transporter verification failed:', error);
+    } else {
+        console.log('Email server is ready to send messages');
+    }
+});
 
 // Rate limiting helper
 function delay(ms) {
@@ -91,7 +83,7 @@ app.get('/health', (req, res) => {
     const healthInfo = {
         status: 'ok',
         timestamp: new Date().toISOString(),
-        emailService: process.env.EMAIL_SERVICE || 'demo',
+        emailService: process.env.EMAIL_SERVICE || 'gmail',
         transporterReady: !!transporter,
         nodeEnv: process.env.NODE_ENV || 'development',
         memoryUsage: process.memoryUsage()
@@ -103,14 +95,6 @@ app.get('/health', (req, res) => {
 // Render.com health check endpoint
 app.get('/ping', (req, res) => {
     res.status(200).send('OK');
-});
-
-// Configuration endpoint
-app.get('/api/config', (req, res) => {
-    res.json({
-        emailService: process.env.EMAIL_SERVICE || 'demo',
-        demoMode: !process.env.EMAIL_SERVICE || process.env.EMAIL_SERVICE === 'demo'
-    });
 });
 
 // Send emails endpoint
@@ -219,53 +203,27 @@ app.post('/api/send-emails', async (req, res) => {
             }
 
             try {
-                if (!transporter || process.env.EMAIL_SERVICE === 'demo') {
-                    // Demo mode - simulate sending
-                    await delay(100); // Short delay for demo
-                    
-                    // Simulate 95% success rate
-                    const isSuccess = Math.random() > 0.05;
-                    
-                    if (isSuccess) {
-                        results.push({
-                            email,
-                            success: true,
-                            message: 'Demo: Simulated success',
-                            index: i
-                        });
-                        successCount++;
-                    } else {
-                        results.push({
-                            email,
-                            success: false,
-                            message: 'Demo: Simulated failure',
-                            index: i
-                        });
-                        errorCount++;
-                    }
-                } else {
-                    // Real email sending
-                    const mailOptions = {
-                        from: `"${fromName}" <${fromEmail}>`,
-                        to: email,
-                        subject: emailSubject,
-                        html: htmlContent,
-                        replyTo: replyTo,
-                        attachments: attachments
-                    };
+                // Real email sending
+                const mailOptions = {
+                    from: `"${fromName}" <${fromEmail}>`,
+                    to: email,
+                    subject: emailSubject,
+                    html: htmlContent,
+                    replyTo: replyTo,
+                    attachments: attachments
+                };
 
-                    await transporter.sendMail(mailOptions);
-                    
-                    results.push({
-                        email,
-                        success: true,
-                        message: 'Email sent successfully',
-                        index: i
-                    });
-                    successCount++;
-                    
-                    console.log(`✅ Email sent successfully to ${email} (${i + 1}/${totalEmails})`);
-                }
+                await transporter.sendMail(mailOptions);
+                
+                results.push({
+                    email,
+                    success: true,
+                    message: 'Email sent successfully',
+                    index: i
+                });
+                successCount++;
+                
+                console.log(`✅ Email sent successfully to ${email} (${i + 1}/${totalEmails})`);
                 
                 // Rate limiting - delay between emails
                 if (i < emails.length - 1) {
@@ -320,13 +278,6 @@ app.post('/api/test-email', async (req, res) => {
         
         if (!validateEmail(testEmail)) {
             return res.status(400).json({ error: 'Invalid email format' });
-        }
-
-        if (!transporter || process.env.EMAIL_SERVICE === 'demo') {
-            return res.json({
-                success: true,
-                message: 'Demo mode - test email simulated successfully'
-            });
         }
 
         let htmlContent = `
@@ -410,5 +361,5 @@ app.post('/api/test-email', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Email Campaign Manager server running on port ${PORT}`);
     console.log(`Open http://localhost:${PORT} to access the application`);
-    console.log(`Email service: ${process.env.EMAIL_SERVICE || 'demo mode'}`);
+    console.log(`Email service: ${process.env.EMAIL_SERVICE || 'gmail'}`);
 });

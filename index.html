@@ -337,25 +337,7 @@
                     <li><strong>Test your configuration</strong> using the test email feature above</li>
                 </ol>
                 
-                <div class="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
-                    <p class="text-blue-800 text-sm"><strong>📧 Supported Email Providers:</strong></p>
-                    <ul class="text-xs text-blue-700 mt-1 list-disc pl-5">
-                        <li><strong>Gmail:</strong> Use App Password (not your regular password)</li>
-                        <li><strong>Outlook/Hotmail:</strong> Use your regular password</li>
-                        <li><strong>Yahoo:</strong> Use App Password</li>
-                        <li><strong>Custom SMTP:</strong> Set SMTP_HOST, SMTP_PORT, and SMTP_SECURE</li>
-                    </ul>
-                </div>
-                
-                <div class="mt-3 p-3 bg-green-50 rounded border border-green-200">
-                    <p class="text-green-800 text-sm"><strong>🚀 Benefits of Nodemailer:</strong></p>
-                    <ul class="text-xs text-green-700 mt-1 list-disc pl-5">
-                        <li>No size limits (compared to EmailJS 50KB limit)</li>
-                        <li>Better deliverability and control</li>
-                        <li>Support for all major email providers</li>
-                        <li>Enhanced security with environment variables</li>
-                    </ul>
-                </div>
+
             </div>
         </div>
     </div>
@@ -419,33 +401,11 @@
         
         // API Configuration
         const API_BASE_URL = window.location.origin;
-        let serverConfig = { demoMode: true, emailService: 'demo' };
         
         // Variables
         let emailData = [];
         let flyerData = null;
         let flyerType = 'image';
-        
-        // Initialize and check server configuration
-        async function initializeApp() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/config`);
-                serverConfig = await response.json();
-                console.log('Server config:', serverConfig);
-                
-                if (serverConfig.demoMode) {
-                    console.log('Running in demo mode - emails will be simulated');
-                } else {
-                    console.log(`Email service configured: ${serverConfig.emailService}`);
-                }
-            } catch (error) {
-                console.error('Failed to fetch server config:', error);
-                serverConfig = { demoMode: true, emailService: 'demo' };
-            }
-        }
-        
-        // Initialize the app
-        initializeApp();
         
         // Event Listeners
         browseEmailBtn.addEventListener('click', () => emailFileInput.click());
@@ -1046,14 +1006,6 @@
             }
             
             console.log('Starting email send process...');
-            console.log('Server config:', serverConfig);
-            
-            // Show configuration status
-            if (serverConfig.demoMode) {
-                alert('⚠️ Running in Demo Mode!\n\nTo send real emails:\n1. Set up email service (Gmail, Outlook, etc.)\n2. Configure environment variables\n3. Restart the server\n\nFor now, this will simulate sending emails.');
-            } else {
-                console.log(`Using ${serverConfig.emailService} email service`);
-            }
             
             // Update UI
             sendEmailsBtn.disabled = true;

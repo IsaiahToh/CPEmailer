@@ -4,18 +4,16 @@ A modern, responsive web application for managing bulk email campaigns with drag
 
 ## Features
 
-- ✅ **Excel & CSV Support**: Upload email lists from .xlsx, .xls, or .csv files
-- ✅ **Dual Flyer Types**: Support for both image flyers and HTML email templates
-- ✅ **Drag & Drop Interface**: Modern, intuitive file upload experience
-- ✅ **Real-time Progress**: Live tracking of email sending progress
-- ✅ **Email Validation**: Automatic validation and duplicate removal
-- ✅ **Responsive Design**: Works on desktop, tablet, and mobile devices
-- ✅ **Nodemailer Integration**: Reliable email sending with major providers
-- ✅ **Test Email Feature**: Verify your configuration before sending campaigns
-- ✅ **Enhanced Security**: Environment-based configuration
-- ✅ **Image Attachments**: Proper email attachments instead of embedded base64
-- ✅ **Production Ready**: Optimized for deployment on platforms like Render.com
-- ✅ **Better Deliverability**: Reduced spam filter triggers with proper attachments
+- **Excel & CSV Support**: Upload email lists from .xlsx, .xls, or .csv files
+- **Dual Flyer Types**: Support for both image flyers and HTML email templates
+- **Drag & Drop Interface**: Intuitive file upload
+- **Real-time Progress**: Tracking of completion of email sending
+- **Email Validation**: Automatic validation and duplicate removal
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Nodemailer Integration**: Reliable email sending with Gmail
+- **Test Email Feature**: Verify your configuration before sending campaigns
+- **Image Attachments**: Proper email attachments
+- **Deliverability**: Reduced spam filter triggers with proper attachments
 
 ## Quick Start
 
@@ -24,10 +22,10 @@ A modern, responsive web application for managing bulk email campaigns with drag
    npm install
    ```
 
-2. **Configure Email Settings**:
+2. **Configure Gmail Settings** (Required):
    ```bash
    cp .env.example .env
-   # Edit .env file with your email configuration
+   # Edit .env file with your Gmail configuration (see Email Configuration section below)
    ```
 
 3. **Start the Server**:
@@ -36,6 +34,8 @@ A modern, responsive web application for managing bulk email campaigns with drag
    ```
 
 4. **Open the App**: Visit http://localhost:3000
+
+**Note**: Gmail configuration is required before the application can send emails. The app will not function without proper email credentials.
 
 ## Email Configuration
 
@@ -48,33 +48,6 @@ A modern, responsive web application for managing bulk email campaigns with drag
    EMAIL_USER=your_email@gmail.com
    EMAIL_PASS=your_16_character_app_password
    ```
-
-### Outlook/Hotmail Setup:
-```env
-EMAIL_SERVICE=outlook
-EMAIL_USER=your_email@outlook.com
-EMAIL_PASS=your_regular_password
-```
-
-### Yahoo Setup:
-1. Enable 2-Factor Authentication
-2. Generate an App Password: Yahoo Account → Security → Generate app password
-3. Configure your `.env` file:
-   ```env
-   EMAIL_SERVICE=yahoo
-   EMAIL_USER=your_email@yahoo.com
-   EMAIL_PASS=your_app_password
-   ```
-
-### Custom SMTP:
-```env
-EMAIL_SERVICE=custom
-SMTP_HOST=smtp.yourprovider.com
-SMTP_PORT=587
-SMTP_SECURE=false
-EMAIL_USER=your_email@yourprovider.com
-EMAIL_PASS=your_password
-```
 
 ## How to Use
 
@@ -91,16 +64,11 @@ EMAIL_PASS=your_password
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `EMAIL_SERVICE` | Email provider | `gmail`, `outlook`, `yahoo`, `custom` |
-| `EMAIL_USER` | Your email address | `user@gmail.com` |
-| `EMAIL_PASS` | Your app password | `abcd efgh ijkl mnop` |
-| `SMTP_HOST` | SMTP server (for custom) | `smtp.example.com` |
-| `SMTP_PORT` | SMTP port (for custom) | `587` |
-| `SMTP_SECURE` | Use SSL/TLS (for custom) | `false` |
+| `EMAIL_SERVICE` | Email provider (use gmail) | `gmail` |
+| `EMAIL_USER` | Your Gmail address | `user@gmail.com` |
+| `EMAIL_PASS` | Your Gmail app password | `abcd efgh ijkl mnop` |
 | `EMAIL_DELAY` | Delay between emails (ms) | `1000` |
 | `PORT` | Server port | `3000` |
-
-⚠️ **Security Note**: Never commit your actual EmailJS credentials to GitHub!
 
 ## File Formats Supported
 
@@ -114,14 +82,14 @@ EMAIL_PASS=your_password
 
 ## Technical Features
 
-- **Modern Tech Stack**: HTML5, CSS3 (Tailwind), Vanilla JavaScript
+- **Modern Tech Stack**: HTML5, CSS3 (Tailwind), Vanilla JavaScript, Node.js
 - **External Libraries**: 
   - XLSX.js for Excel file parsing
-  - EmailJS for email delivery
+  - Nodemailer for Gmail email delivery
   - Font Awesome for icons
   - Tailwind CSS for styling
-- **No Backend Required**: Runs entirely in the browser
-- **Rate Limiting**: Built-in delays to prevent email service rate limits
+- **Backend Server**: Express.js server for email processing
+- **Rate Limiting**: Built-in delays to prevent Gmail rate limits
 - **Error Handling**: Comprehensive error catching and user feedback
 
 ## Demo Files
@@ -134,14 +102,3 @@ EMAIL_PASS=your_password
 - Firefox 55+
 - Safari 12+
 - Edge 79+
-
-## Security Notes
-
-- Email addresses are processed locally in your browser
-- No data is sent to external servers (except through EmailJS when configured)
-- Consider privacy regulations (GDPR, CAN-SPAM) when sending bulk emails
-- Always include unsubscribe options in your campaigns
-
-## License
-
-This project is open source and available under the MIT License.
